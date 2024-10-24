@@ -1,0 +1,11 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "S3DynamoDBFunction-app"
+resolve_s3 = true
+region = "us-east-1"
+profile = "DavidProgramer"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+
+#sam deploy --profile DavidProgramer --config-file samconfigDavidProgramer.toml

@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  S3ObjectLister
+
+Globals:
+  Function:
+    Timeout: 20
+    MemorySize: 512
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "s3-to-dynamo-jdao"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  S3DynamoDBFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "S3DynamoDBFunction_JDAO" 
+      CodeUri: S3DynamoDBFunction
+      Handler: bucket_dynamo.S3ToDynamoDB::handleRequest
+      Runtime: java21
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      PackageType: Zip
+      Role: arn:aws:iam::699259401145:role/LambdaS3toDynamoDB
+      RecursiveLoop: Terminate
+      SnapStart:
+        ApplyOn: None
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref S3Bucket #Si no exite el buket lo crea
+            # Bucket: "s3-to-dynamo-jdao" #Utiliza un buket que ya esta creado
+            Events: s3:ObjectCreated:*
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: Auto
+
+Outputs:
+  BucketName:
+    Description: "Nombre del bucket"
+    Value: !Ref S3Bucket
+  BucketDynamoFunction:  
+    Description: "ARN de la función S3DynamoDBFunction"
+    Value: !GetAtt S3DynamoDBFunction.Arn  
+  BucketDynamoFunctionIamRole:
+    Description: "Rol IAM para la función S3DynamoDBFunction"
+    Value: arn:aws:iam::699259401145:role/LambdaS3toDynamoDB  
